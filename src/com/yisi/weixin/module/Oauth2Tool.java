@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.yisi.weixin.bean.SNSUserInfo;
-import com.yisi.weixin.bean.WeixinOauth2Token;
+import com.yisi.weixin.bean.Oauth2Token;
 import com.yisi.weixin.util.CommonUtil;
 
 /**
@@ -18,9 +18,9 @@ import com.yisi.weixin.util.CommonUtil;
  * @author liwen
  * @version 1.0
  */
-public class WeixinOauth2Tool {
+public class Oauth2Tool {
 
-	private static Logger logger = LoggerFactory.getLogger(WeixinOauth2Tool.class);
+	private static Logger logger = LoggerFactory.getLogger(Oauth2Tool.class);
 
 	/**
 	 * 获取网页授权凭证
@@ -33,9 +33,9 @@ public class WeixinOauth2Tool {
 	 * @param code
 	 * @return WeixinAouth2Token
 	 */
-	public static WeixinOauth2Token getOauth2AccessToken(String appId,
+	public static Oauth2Token getOauth2AccessToken(String appId,
 			String appSecret, String code) {
-		WeixinOauth2Token wat = null;
+		Oauth2Token token = null;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code";
 		requestUrl = requestUrl.replace("APPID", appId);
@@ -46,21 +46,21 @@ public class WeixinOauth2Tool {
 				.httpsRequest(requestUrl, "GET", null);
 		if (null != jsonObject) {
 			try {
-				wat = new WeixinOauth2Token();
-				wat.setAccessToken(jsonObject.getString("access_token"));
-				wat.setExpiresIn(jsonObject.getInteger("expires_in"));
-				wat.setRefreshToken(jsonObject.getString("refresh_token"));
-				wat.setOpenId(jsonObject.getString("openid"));
-				wat.setScope(jsonObject.getString("scope"));
+				token = new Oauth2Token();
+				token.setAccessToken(jsonObject.getString("access_token"));
+				token.setExpiresIn(jsonObject.getInteger("expires_in"));
+				token.setRefreshToken(jsonObject.getString("refresh_token"));
+				token.setOpenId(jsonObject.getString("openid"));
+				token.setScope(jsonObject.getString("scope"));
 			} catch (Exception e) {
-				wat = null;
+				token = null;
 				int errorCode = jsonObject.getInteger("errcode");
 				String errorMsg = jsonObject.getString("errmsg");
 				logger.error("获取网页授权凭证失败 errcode:{} errmsg:{}", errorCode,
 						errorMsg);
 			}
 		}
-		return wat;
+		return token;
 	}
 
 	/**
@@ -72,9 +72,9 @@ public class WeixinOauth2Tool {
 	 * @param refreshToken
 	 * @return WeixinAouth2Token
 	 */
-	public static WeixinOauth2Token refreshOauth2AccessToken(String appId,
+	public static Oauth2Token refreshOauth2AccessToken(String appId,
 			String refreshToken) {
-		WeixinOauth2Token wat = null;
+		Oauth2Token wat = null;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=APPID&grant_type=refresh_token&refresh_token=REFRESH_TOKEN";
 		requestUrl = requestUrl.replace("APPID", appId);
@@ -84,7 +84,7 @@ public class WeixinOauth2Tool {
 				.httpsRequest(requestUrl, "GET", null);
 		if (null != jsonObject) {
 			try {
-				wat = new WeixinOauth2Token();
+				wat = new Oauth2Token();
 				wat.setAccessToken(jsonObject.getString("access_token"));
 				wat.setExpiresIn(jsonObject.getInteger("expires_in"));
 				wat.setRefreshToken(jsonObject.getString("refresh_token"));
