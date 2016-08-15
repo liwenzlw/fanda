@@ -1,9 +1,7 @@
 package com.yisi.weixin.corecontroller;
 
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -12,10 +10,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.mchange.v2.beans.BeansUtils;
-import com.yisi.weixin.bean.SNSUserInfo;
 import com.yisi.weixin.bean.Oauth2Token;
+import com.yisi.weixin.bean.SNSUserInfo;
+import com.yisi.weixin.exception.WeixinException;
 import com.yisi.weixin.module.Oauth2Tool;
+import com.yisi.weixin.util.Configure;
 
 /**
  * 授权回调请求处理程序
@@ -32,40 +31,47 @@ import com.yisi.weixin.module.Oauth2Tool;
 
 @Controller
 @RequestMapping("/weixin")
-public class OAuth2Controller{
+public class OAuth2Controller {
 
-	@RequestMapping(value="/oauth",method=RequestMethod.GET)
-	public void oauth(HttpServletRequest request, HttpServletResponse response)
-			throws Exception{
-		request.setCharacterEncoding("UTF-8");
-		response.setCharacterEncoding("UTF-8");
+	@RequestMapping(value = "/oauth", method = RequestMethod.GET)
+	public String oauth(HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
 
-		// 用户同意授权后，能获取到code
-		String code = request.getParameter("code");
+		try {
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			// 用户同意授权后，能获取到code
+			String code = request.getParameter("code");
 
-		// 用户同意授权
-		if (!StringUtils.isEmpty(code)) {
-			// 获取网页授权access_token
-			Oauth2Token token = Oauth2Tool.getOauth2AccessToken(
-					"APPID", "APPSECRET", code);
-			// 网页授权接口访问凭证
-			String accessToken = token.getAccessToken();
-			// 用户标识
-			String openId = token.getOpenId();
-			// 获取用户信息
-			SNSUserInfo snsUserInfo = Oauth2Tool.getSNSUserInfo(accessToken,
-					openId);
-			if(null == snsUserInfo) {
-				//TODO 获取用户信息失败处理
-				return;
+			// 如果用户同意授权，页面将跳转至 redirect_uri/?code=CODE&state=STATE。
+			if (!StringUtils.isEmpty(code)) {
+				// 获取网页授权access_token
+				Oauth2Token token = Oauth2Tool.getOauth2AccessToken(
+						Configure.APPID, Configure.APPSECRET, code);
+				
+				//网页授权作用域为snsapi_userinfo，（弹出授权页面，可通过openid拿到昵称、性别、所在地。并且，即使在未关注的情况下，只要用户授权，也能获取其信息）。
+				if("snsapi_userinfo".equalsIgnoreCase(token.getScope())) {
+					// 网页授权接口访问凭证
+					String accessToken = token.getAccessToken();
+					// 用户标识
+					String openId = token.getOpenId();
+					// 获取用户信息
+					SNSUserInfo snsUserInfo = Oauth2Tool.getSNSUserInfo(accessToken,
+							openId);
+					// 设置要传递的参数
+					request.setAttribute("snsUserInfo", snsUserInfo);
+					// 跳转到index.jsp
+					return "/weixin/index";
+				} else {
+					//网页授权作用域为snsapi_base （不弹出授权页面，直接跳转，只能获取用户openid）
+				}
+				
 			} else {
-				// 设置要传递的参数
-				request.setAttribute("snsUserInfo", snsUserInfo);
-				// 跳转到index.jsp
-				request.getRequestDispatcher("index.jsp").forward(request, response);
+				// TODO 用户拒绝授权处理,若用户禁止授权，则重定向后不会带上code参数，仅会带上state参数redirect_uri?state=STATE
 			}
-		} else {
-			//TODO 用户拒绝授权处理
+		} catch (Exception e) {
+			throw new WeixinException(e.getMessage());
 		}
+		return null;
 	}
 }

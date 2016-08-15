@@ -16,7 +16,7 @@ import org.springframework.util.StringUtils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.yisi.weixin.bean.WeixinMedia;
+import com.yisi.weixin.bean.Media;
 import com.yisi.weixin.util.CommonUtil;
 
 /**
@@ -42,9 +42,9 @@ public class MideaManagerTool {
 	 * @param mediaFileUrl
 	 *            媒体文件的url
 	 */
-	public static WeixinMedia uploadMedia(String accessToken, String type,
+	public static Media uploadMedia(String accessToken, String type,
 			String mediaFileUrl) {
-		WeixinMedia weixinMedia = null;
+		Media weixinMedia = null;
 		// 拼装请求地址
 		String uploadMediaUrl = "https://api.weixin.qq.com/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type=TYPE";
 		uploadMediaUrl = uploadMediaUrl.replace("ACCESS_TOKEN", accessToken)
@@ -129,7 +129,7 @@ public class MideaManagerTool {
 						jsonObject.getString("errmsg"));
 				return weixinMedia;
 			}
-			weixinMedia = new WeixinMedia();
+			weixinMedia = new Media();
 			weixinMedia.setType(jsonObject.getString("type"));
 			// type等于thumb时的返回结果和其它类型不一样
 			if ("thumb".equals(type))

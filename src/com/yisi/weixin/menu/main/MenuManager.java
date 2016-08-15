@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggerFactory;
 
 import com.yisi.weixin.bean.Token;
+import com.yisi.weixin.exception.WeixinException;
 import com.yisi.weixin.menu.Button;
 import com.yisi.weixin.menu.ClickButton;
 import com.yisi.weixin.menu.ComplexButton;
@@ -103,12 +104,20 @@ public class MenuManager {
 		String appSecret = "506607f36b91bfee920a9f324bc04093";
 
 		// 调用接口获取凭证
-		Token token = CommonUtil.getToken(appId, appSecret);
-
+		Token token = null;
+		try {
+			token = CommonUtil.getToken(appId, appSecret);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		if (null != token) {
 			// 创建菜单
-			boolean result = MenuTool.createMenu(getMenu(), token.getAccessToken());
-
+			boolean result = false;
+			try {
+				result = MenuTool.createMenu(getMenu(), token.getAccessToken());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			// 判断菜单创建结果
 			if (result)
 				logger.info("菜单创建成功！");

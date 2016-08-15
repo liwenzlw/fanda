@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.yisi.weixin.exception.WeixinException;
 import com.yisi.weixin.message.response.Article;
 import com.yisi.weixin.message.response.Music;
 import com.yisi.weixin.util.CommonUtil;
@@ -21,7 +22,8 @@ import com.yisi.weixin.util.CommonUtil;
  */
 public class CustomServiceTool {
 
-	private static Logger logger = LoggerFactory.getLogger(CustomServiceTool.class);
+	private static Logger logger = LoggerFactory
+			.getLogger(CustomServiceTool.class);
 
 	/**
 	 * 组装文本客服消息
@@ -143,7 +145,7 @@ public class CustomServiceTool {
 	 *            json格式的客服消息（包括touser、msgtype和消息内容）
 	 * @return true | false
 	 */
-	public static boolean sendCustomMessage(String accessToken, String jsonMsg) {
+	public static boolean sendCustomMessage(String accessToken, String jsonMsg) throws WeixinException,Exception {
 		logger.info("消息内容：{}", jsonMsg);
 		boolean result = false;
 		// 拼接请求地址
@@ -153,17 +155,13 @@ public class CustomServiceTool {
 		JSONObject jsonObject = CommonUtil.httpsRequest(requestUrl, "POST",
 				jsonMsg);
 
-		if (null != jsonObject) {
-			int errorCode = jsonObject.getInteger("errcode");
-			String errorMsg = jsonObject.getString("errmsg");
-			if (0 == errorCode) {
-				result = true;
-				logger.info("客服消息发送成功 errcode:{} errmsg:{}", errorCode,
-						errorMsg);
-			} else {
-				logger.error("客服消息发送失败 errcode:{} errmsg:{}", errorCode,
-						errorMsg);
-			}
+		int errorCode = jsonObject.getInteger("errcode");
+		String errorMsg = jsonObject.getString("errmsg");
+		if (0 == errorCode) {
+			result = true;
+			logger.info("客服消息发送成功 errcode:{} errmsg:{}", errorCode, errorMsg);
+		} else {
+			logger.error("客服消息发送失败 errcode:{} errmsg:{}", errorCode, errorMsg);
 		}
 		return result;
 	}

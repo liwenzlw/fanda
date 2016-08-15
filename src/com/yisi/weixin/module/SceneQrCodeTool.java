@@ -11,7 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSONObject;
-import com.yisi.weixin.bean.WeixinQRCode;
+import com.yisi.weixin.bean.SceneQRCode;
+import com.yisi.weixin.exception.WeixinException;
 import com.yisi.weixin.util.CommonUtil;
 
 /**
@@ -21,9 +22,9 @@ import com.yisi.weixin.util.CommonUtil;
  * @author liwen
  * @version 1.0
  */
-public class QrCodeTool {
+public class SceneQrCodeTool {
 
-	private static Logger logger = LoggerFactory.getLogger(QrCodeTool.class);
+	private static Logger logger = LoggerFactory.getLogger(SceneQrCodeTool.class);
 
 	/**
 	 * 创建临时带参二维码
@@ -37,9 +38,9 @@ public class QrCodeTool {
 	 *            场景ID
 	 * @return WeixinQRCode
 	 */
-	public static WeixinQRCode createTemporaryQRCode(String accessToken,
-			int expireSeconds, int sceneId) {
-		WeixinQRCode weixinQRCode = null;
+	public static SceneQRCode createTemporaryQRCode(String accessToken,
+			int expireSeconds, int sceneId) throws Exception {
+		SceneQRCode weixinQRCode = null;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=ACCESS_TOKEN";
 		requestUrl = requestUrl.replace("ACCESS_TOKEN", accessToken);
@@ -49,23 +50,20 @@ public class QrCodeTool {
 		JSONObject jsonObject = CommonUtil.httpsRequest(requestUrl, "POST",
 				String.format(jsonMsg, expireSeconds, sceneId));
 
-		if (null != jsonObject) {
-			try {
-				weixinQRCode = new WeixinQRCode();
-				weixinQRCode.setTicket(jsonObject.getString("ticket"));
-				weixinQRCode.setExpireSeconds(jsonObject
-						.getInteger("expire_seconds"));
-				weixinQRCode.setUrl(jsonObject.getString("url"));
-				logger.info("创建临时带参二维码成功 ticket:{} expire_seconds:{}",
-						weixinQRCode.getTicket(),
-						weixinQRCode.getExpireSeconds());
-			} catch (Exception e) {
-				weixinQRCode = null;
-				int errorCode = jsonObject.getInteger("errcode");
-				String errorMsg = jsonObject.getString("errmsg");
-				logger.error("创建临时带参二维码失败 errcode:{} errmsg:{}", errorCode,
-						errorMsg);
-			}
+		try {
+			weixinQRCode = new SceneQRCode();
+			weixinQRCode.setTicket(jsonObject.getString("ticket"));
+			weixinQRCode.setExpireSeconds(jsonObject
+					.getInteger("expire_seconds"));
+			weixinQRCode.setUrl(jsonObject.getString("url"));
+			logger.info("创建临时带参二维码成功 ticket:{} expire_seconds:{}",
+					weixinQRCode.getTicket(), weixinQRCode.getExpireSeconds());
+		} catch (Exception e) {
+			weixinQRCode = null;
+			int errorCode = jsonObject.getInteger("errcode");
+			String errorMsg = jsonObject.getString("errmsg");
+			logger.error("创建临时带参二维码失败 errcode:{} errmsg:{}", errorCode,
+					errorMsg);
 		}
 		return weixinQRCode;
 	}
@@ -80,7 +78,8 @@ public class QrCodeTool {
 	 *            场景ID
 	 * @return ticket
 	 */
-	public static String createPermanentQRCode(String accessToken, int sceneId) {
+	public static String createPermanentQRCode(String accessToken, int sceneId)
+			throws Exception {
 		String ticket = null;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=ACCESS_TOKEN";
@@ -91,16 +90,14 @@ public class QrCodeTool {
 		JSONObject jsonObject = CommonUtil.httpsRequest(requestUrl, "POST",
 				String.format(jsonMsg, sceneId));
 
-		if (null != jsonObject) {
-			try {
-				ticket = jsonObject.getString("ticket");
-				logger.info("创建永久带参二维码成功 ticket:{}", ticket);
-			} catch (Exception e) {
-				int errorCode = jsonObject.getInteger("errcode");
-				String errorMsg = jsonObject.getString("errmsg");
-				logger.error("创建永久带参二维码失败 errcode:{} errmsg:{}", errorCode,
-						errorMsg);
-			}
+		try {
+			ticket = jsonObject.getString("ticket");
+			logger.info("创建永久带参二维码成功 ticket:{}", ticket);
+		} catch (Exception e) {
+			int errorCode = jsonObject.getInteger("errcode");
+			String errorMsg = jsonObject.getString("errmsg");
+			logger.error("创建永久带参二维码失败 errcode:{} errmsg:{}", errorCode,
+					errorMsg);
 		}
 		return ticket;
 	}
@@ -114,7 +111,7 @@ public class QrCodeTool {
 	 * @param savePath
 	 *            保存路径
 	 */
-	public static String getQRCode(String ticket, String savePath) {
+	public static String getQRCode(String ticket, String savePath) throws Exception {
 		String filePath = null;
 		// 拼接请求地址
 		String requestUrl = "https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=TICKET";
@@ -148,6 +145,7 @@ public class QrCodeTool {
 		} catch (Exception e) {
 			filePath = null;
 			logger.error("根据ticket换取二维码失败：{}", e);
+			throw new WeixinException("根据ticket换取二维码失败" + e.getMessage());
 		}
 		return filePath;
 	}

@@ -9,6 +9,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.yisi.weixin.bean.SNSUserInfo;
 import com.yisi.weixin.bean.Oauth2Token;
+import com.yisi.weixin.exception.WeixinException;
 import com.yisi.weixin.util.CommonUtil;
 
 /**
@@ -34,7 +35,7 @@ public class Oauth2Tool {
 	 * @return WeixinAouth2Token
 	 */
 	public static Oauth2Token getOauth2AccessToken(String appId,
-			String appSecret, String code) {
+			String appSecret, String code) throws Exception {
 		Oauth2Token token = null;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code";
@@ -58,6 +59,7 @@ public class Oauth2Tool {
 				String errorMsg = jsonObject.getString("errmsg");
 				logger.error("获取网页授权凭证失败 errcode:{} errmsg:{}", errorCode,
 						errorMsg);
+				throw new WeixinException("获取网页授权凭证失败");
 			}
 		}
 		return token;
@@ -73,8 +75,8 @@ public class Oauth2Tool {
 	 * @return WeixinAouth2Token
 	 */
 	public static Oauth2Token refreshOauth2AccessToken(String appId,
-			String refreshToken) {
-		Oauth2Token wat = null;
+			String refreshToken) throws Exception {
+		Oauth2Token token = null;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=APPID&grant_type=refresh_token&refresh_token=REFRESH_TOKEN";
 		requestUrl = requestUrl.replace("APPID", appId);
@@ -82,23 +84,21 @@ public class Oauth2Tool {
 		// 刷新网页授权凭证
 		JSONObject jsonObject = CommonUtil
 				.httpsRequest(requestUrl, "GET", null);
-		if (null != jsonObject) {
-			try {
-				wat = new Oauth2Token();
-				wat.setAccessToken(jsonObject.getString("access_token"));
-				wat.setExpiresIn(jsonObject.getInteger("expires_in"));
-				wat.setRefreshToken(jsonObject.getString("refresh_token"));
-				wat.setOpenId(jsonObject.getString("openid"));
-				wat.setScope(jsonObject.getString("scope"));
-			} catch (Exception e) {
-				wat = null;
-				int errorCode = jsonObject.getInteger("errcode");
-				String errorMsg = jsonObject.getString("errmsg");
-				logger.error("刷新网页授权凭证失败 errcode:{} errmsg:{}", errorCode,
-						errorMsg);
-			}
+		try {
+			token = new Oauth2Token();
+			token.setAccessToken(jsonObject.getString("access_token"));
+			token.setExpiresIn(jsonObject.getInteger("expires_in"));
+			token.setRefreshToken(jsonObject.getString("refresh_token"));
+			token.setOpenId(jsonObject.getString("openid"));
+			token.setScope(jsonObject.getString("scope"));
+		} catch (Exception e) {
+			token = null;
+			int errorCode = jsonObject.getInteger("errcode");
+			String errorMsg = jsonObject.getString("errmsg");
+			logger.error("刷新网页授权凭证失败 errcode:{} errmsg:{}", errorCode, errorMsg);
+			throw new WeixinException("刷新网页授权凭证失败");
 		}
-		return wat;
+		return token;
 	}
 
 	/**
@@ -111,8 +111,9 @@ public class Oauth2Tool {
 	 *            用户标识
 	 * @return SNSUserInfo
 	 */
-	@SuppressWarnings({ "deprecation", "unchecked" })
-	public static SNSUserInfo getSNSUserInfo(String accessToken, String openId) {
+	@SuppressWarnings("unchecked")
+	public static SNSUserInfo getSNSUserInfo(String accessToken, String openId)
+			throws Exception {
 		SNSUserInfo snsUserInfo = null;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/sns/userinfo?access_token=ACCESS_TOKEN&openid=OPENID";
@@ -122,33 +123,31 @@ public class Oauth2Tool {
 		JSONObject jsonObject = CommonUtil
 				.httpsRequest(requestUrl, "GET", null);
 
-		if (null != jsonObject) {
-			try {
-				snsUserInfo = new SNSUserInfo();
-				// 用户的标识
-				snsUserInfo.setOpenId(jsonObject.getString("openid"));
-				// 昵称
-				snsUserInfo.setNickname(jsonObject.getString("nickname"));
-				// 性别（1是男性，2是女性，0是未知）
-				snsUserInfo.setSex(jsonObject.getInteger("sex"));
-				// 用户所在国家
-				snsUserInfo.setCountry(jsonObject.getString("country"));
-				// 用户所在省份
-				snsUserInfo.setProvince(jsonObject.getString("province"));
-				// 用户所在城市
-				snsUserInfo.setCity(jsonObject.getString("city"));
-				// 用户头像
-				snsUserInfo.setHeadImgUrl(jsonObject.getString("headimgurl"));
-				// 用户特权信息
-				snsUserInfo.setPrivilegeList(JSONArray.toJavaObject(
-						jsonObject.getJSONArray("privilege"), List.class));
-			} catch (Exception e) {
-				snsUserInfo = null;
-				int errorCode = jsonObject.getInteger("errcode");
-				String errorMsg = jsonObject.getString("errmsg");
-				logger.error("获取用户信息失败 errcode:{} errmsg:{}", errorCode,
-						errorMsg);
-			}
+		try {
+			snsUserInfo = new SNSUserInfo();
+			// 用户的标识
+			snsUserInfo.setOpenId(jsonObject.getString("openid"));
+			// 昵称
+			snsUserInfo.setNickname(jsonObject.getString("nickname"));
+			// 性别（1是男性，2是女性，0是未知）
+			snsUserInfo.setSex(jsonObject.getInteger("sex"));
+			// 用户所在国家
+			snsUserInfo.setCountry(jsonObject.getString("country"));
+			// 用户所在省份
+			snsUserInfo.setProvince(jsonObject.getString("province"));
+			// 用户所在城市
+			snsUserInfo.setCity(jsonObject.getString("city"));
+			// 用户头像
+			snsUserInfo.setHeadImgUrl(jsonObject.getString("headimgurl"));
+			// 用户特权信息
+			snsUserInfo.setPrivilegeList(JSONArray.toJavaObject(
+					jsonObject.getJSONArray("privilege"), List.class));
+		} catch (Exception e) {
+			snsUserInfo = null;
+			int errorCode = jsonObject.getInteger("errcode");
+			String errorMsg = jsonObject.getString("errmsg");
+			logger.error("获取用户信息失败 errcode:{} errmsg:{}", errorCode, errorMsg);
+			throw new WeixinException("网页授权获取用户信息失败");
 		}
 		return snsUserInfo;
 	}

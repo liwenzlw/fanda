@@ -9,9 +9,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
-import com.yisi.weixin.bean.WeixinGroup;
-import com.yisi.weixin.bean.WeixinUserInfo;
-import com.yisi.weixin.bean.WeixinUserList;
+import com.yisi.weixin.bean.UserGroup;
+import com.yisi.weixin.bean.UserInfo;
+import com.yisi.weixin.bean.UserList;
 import com.yisi.weixin.util.CommonUtil;
 
 /**
@@ -36,8 +36,9 @@ public class UserManagerTool {
 	 *            用户标识
 	 * @return WeixinUserInfo
 	 */
-	public static WeixinUserInfo getUserInfo(String accessToken, String openId) {
-		WeixinUserInfo weixinUserInfo = null;
+	public static UserInfo getUserInfo(String accessToken, String openId)
+			throws Exception {
+		UserInfo weixinUserInfo = null;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=ACCESS_TOKEN&openid=OPENID";
 		requestUrl = requestUrl.replace("ACCESS_TOKEN", accessToken).replace(
@@ -46,46 +47,43 @@ public class UserManagerTool {
 		JSONObject jsonObject = CommonUtil
 				.httpsRequest(requestUrl, "GET", null);
 
-		if (null != jsonObject) {
-			try {
-				weixinUserInfo = new WeixinUserInfo();
-				// 用户的标识
-				weixinUserInfo.setOpenId(jsonObject.getString("openid"));
-				// 关注状态（1是关注，0是未关注），未关注时获取不到其余信息
-				weixinUserInfo.setSubscribe(jsonObject.getInteger("subscribe"));
-				// 用户关注时间
-				weixinUserInfo.setSubscribeTime(jsonObject
-						.getString("subscribe_time"));
-				// 昵称
-				weixinUserInfo.setNickname(jsonObject.getString("nickname"));
-				// 用户的性别（1是男性，2是女性，0是未知）
-				weixinUserInfo.setSex(jsonObject.getInteger("sex"));
-				// 用户所在国家
-				weixinUserInfo.setCountry(jsonObject.getString("country"));
-				// 用户所在省份
-				weixinUserInfo.setProvince(jsonObject.getString("province"));
-				// 用户所在城市
-				weixinUserInfo.setCity(jsonObject.getString("city"));
-				// 用户的语言，简体中文为zh_CN
-				weixinUserInfo.setLanguage(jsonObject.getString("language"));
-				// 用户头像
-				weixinUserInfo
-						.setHeadImgUrl(jsonObject.getString("headimgurl"));
-				// 用户头像
-				weixinUserInfo.setRemark(jsonObject.getString("remark"));
-				// 用户头像
-				weixinUserInfo.setGroupid(jsonObject.getString("groupid"));
-				// 用户头像
-				weixinUserInfo.setUnionid(jsonObject.getString("unionid"));
-			} catch (Exception e) {
-				if (0 == weixinUserInfo.getSubscribe()) {
-					logger.error("用户{}已取消关注", weixinUserInfo.getOpenId());
-				} else {
-					int errorCode = jsonObject.getInteger("errcode");
-					String errorMsg = jsonObject.getString("errmsg");
-					logger.error("获取用户信息失败 errcode:{} errmsg:{}", errorCode,
-							errorMsg);
-				}
+		try {
+			weixinUserInfo = new UserInfo();
+			// 用户的标识
+			weixinUserInfo.setOpenId(jsonObject.getString("openid"));
+			// 关注状态（1是关注，0是未关注），未关注时获取不到其余信息
+			weixinUserInfo.setSubscribe(jsonObject.getInteger("subscribe"));
+			// 用户关注时间
+			weixinUserInfo.setSubscribeTime(jsonObject
+					.getString("subscribe_time"));
+			// 昵称
+			weixinUserInfo.setNickname(jsonObject.getString("nickname"));
+			// 用户的性别（1是男性，2是女性，0是未知）
+			weixinUserInfo.setSex(jsonObject.getInteger("sex"));
+			// 用户所在国家
+			weixinUserInfo.setCountry(jsonObject.getString("country"));
+			// 用户所在省份
+			weixinUserInfo.setProvince(jsonObject.getString("province"));
+			// 用户所在城市
+			weixinUserInfo.setCity(jsonObject.getString("city"));
+			// 用户的语言，简体中文为zh_CN
+			weixinUserInfo.setLanguage(jsonObject.getString("language"));
+			// 用户头像
+			weixinUserInfo.setHeadImgUrl(jsonObject.getString("headimgurl"));
+			// 用户头像
+			weixinUserInfo.setRemark(jsonObject.getString("remark"));
+			// 用户头像
+			weixinUserInfo.setGroupid(jsonObject.getString("groupid"));
+			// 用户头像
+			weixinUserInfo.setUnionid(jsonObject.getString("unionid"));
+		} catch (Exception e) {
+			if (0 == weixinUserInfo.getSubscribe()) {
+				logger.error("用户{}已取消关注", weixinUserInfo.getOpenId());
+			} else {
+				int errorCode = jsonObject.getInteger("errcode");
+				String errorMsg = jsonObject.getString("errmsg");
+				logger.error("获取用户信息失败 errcode:{} errmsg:{}", errorCode,
+						errorMsg);
 			}
 		}
 		return weixinUserInfo;
@@ -102,9 +100,9 @@ public class UserManagerTool {
 	 * @return WeixinUserList
 	 */
 	@SuppressWarnings({ "unchecked", "deprecation" })
-	public static WeixinUserList getUserList(String accessToken,
-			String nextOpenId) {
-		WeixinUserList weixinUserList = null;
+	public static UserList getUserList(String accessToken, String nextOpenId)
+			throws Exception {
+		UserList weixinUserList = null;
 
 		if (null == nextOpenId)
 			nextOpenId = "";
@@ -118,23 +116,19 @@ public class UserManagerTool {
 		JSONObject jsonObject = CommonUtil
 				.httpsRequest(requestUrl, "GET", null);
 		// 如果请求成功
-		if (null != jsonObject) {
-			try {
-				weixinUserList = new WeixinUserList();
-				weixinUserList.setTotal(jsonObject.getInteger("total"));
-				weixinUserList.setCount(jsonObject.getInteger("count"));
-				weixinUserList.setNextOpenId(jsonObject
-						.getString("next_openid"));
-				JSONObject dataObject = (JSONObject) jsonObject.get("data");
-				weixinUserList.setOpenIdList(JSONArray.toJavaObject(
-						dataObject.getJSONArray("openid"), List.class));
-			} catch (JSONException e) {
-				weixinUserList = null;
-				int errorCode = jsonObject.getInteger("errcode");
-				String errorMsg = jsonObject.getString("errmsg");
-				logger.error("获取关注者列表失败 errcode:{} errmsg:{}", errorCode,
-						errorMsg);
-			}
+		try {
+			weixinUserList = new UserList();
+			weixinUserList.setTotal(jsonObject.getInteger("total"));
+			weixinUserList.setCount(jsonObject.getInteger("count"));
+			weixinUserList.setNextOpenId(jsonObject.getString("next_openid"));
+			JSONObject dataObject = (JSONObject) jsonObject.get("data");
+			weixinUserList.setOpenIdList(JSONArray.toJavaObject(
+					dataObject.getJSONArray("openid"), List.class));
+		} catch (JSONException e) {
+			weixinUserList = null;
+			int errorCode = jsonObject.getInteger("errcode");
+			String errorMsg = jsonObject.getString("errmsg");
+			logger.error("获取关注者列表失败 errcode:{} errmsg:{}", errorCode, errorMsg);
 		}
 		return weixinUserList;
 	}
@@ -147,8 +141,9 @@ public class UserManagerTool {
 	 *            调用接口凭证
 	 */
 	@SuppressWarnings({ "unchecked", "deprecation" })
-	public static List<WeixinGroup> getGroups(String accessToken) {
-		List<WeixinGroup> weixinGroupList = null;
+	public static List<UserGroup> getGroups(String accessToken)
+			throws Exception {
+		List<UserGroup> weixinGroupList = null;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/cgi-bin/groups/get?access_token=ACCESS_TOKEN";
 		requestUrl = requestUrl.replace("ACCESS_TOKEN", accessToken);
@@ -156,16 +151,14 @@ public class UserManagerTool {
 		JSONObject jsonObject = CommonUtil
 				.httpsRequest(requestUrl, "GET", null);
 
-		if (null != jsonObject) {
-			try {
-				weixinGroupList = JSON.parseArray(
-						jsonObject.getString("groups"), WeixinGroup.class);
-			} catch (JSONException e) {
-				weixinGroupList = null;
-				int errorCode = jsonObject.getInteger("errcode");
-				String errorMsg = jsonObject.getString("errmsg");
-				logger.error("查询分组失败 errcode:{} errmsg:{}", errorCode, errorMsg);
-			}
+		try {
+			weixinGroupList = JSON.parseArray(jsonObject.getString("groups"),
+					UserGroup.class);
+		} catch (JSONException e) {
+			weixinGroupList = null;
+			int errorCode = jsonObject.getInteger("errcode");
+			String errorMsg = jsonObject.getString("errmsg");
+			logger.error("查询分组失败 errcode:{} errmsg:{}", errorCode, errorMsg);
 		}
 		return weixinGroupList;
 	}
@@ -180,8 +173,9 @@ public class UserManagerTool {
 	 *            分组名称
 	 * @return
 	 */
-	public static WeixinGroup createGroup(String accessToken, String groupName) {
-		WeixinGroup weixinGroup = null;
+	public static UserGroup createGroup(String accessToken, String groupName)
+			throws Exception {
+		UserGroup weixinGroup = null;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/cgi-bin/groups/create?access_token=ACCESS_TOKEN";
 		requestUrl = requestUrl.replace("ACCESS_TOKEN", accessToken);
@@ -191,19 +185,17 @@ public class UserManagerTool {
 		JSONObject jsonObject = CommonUtil.httpsRequest(requestUrl, "POST",
 				String.format(jsonData, groupName));
 
-		if (null != jsonObject) {
-			try {
-				weixinGroup = new WeixinGroup();
-				weixinGroup.setId(jsonObject.getJSONObject("group").getInteger(
-						"id"));
-				weixinGroup.setName(jsonObject.getJSONObject("group")
-						.getString("name"));
-			} catch (JSONException e) {
-				weixinGroup = null;
-				int errorCode = jsonObject.getInteger("errcode");
-				String errorMsg = jsonObject.getString("errmsg");
-				logger.error("创建分组失败 errcode:{} errmsg:{}", errorCode, errorMsg);
-			}
+		try {
+			weixinGroup = new UserGroup();
+			weixinGroup.setId(jsonObject.getJSONObject("group")
+					.getInteger("id"));
+			weixinGroup.setName(jsonObject.getJSONObject("group").getString(
+					"name"));
+		} catch (JSONException e) {
+			weixinGroup = null;
+			int errorCode = jsonObject.getInteger("errcode");
+			String errorMsg = jsonObject.getString("errmsg");
+			logger.error("创建分组失败 errcode:{} errmsg:{}", errorCode, errorMsg);
 		}
 		return weixinGroup;
 	}
@@ -221,7 +213,7 @@ public class UserManagerTool {
 	 * @return true | false
 	 */
 	public static boolean updateGroup(String accessToken, int groupId,
-			String groupName) {
+			String groupName) throws Exception {
 		boolean result = false;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/cgi-bin/groups/update?access_token=ACCESS_TOKEN";
@@ -232,16 +224,13 @@ public class UserManagerTool {
 		JSONObject jsonObject = CommonUtil.httpsRequest(requestUrl, "POST",
 				String.format(jsonData, groupId, groupName));
 
-		if (null != jsonObject) {
-			int errorCode = jsonObject.getInteger("errcode");
-			String errorMsg = jsonObject.getString("errmsg");
-			if (0 == errorCode) {
-				result = true;
-				logger.info("修改分组名成功 errcode:{} errmsg:{}", errorCode, errorMsg);
-			} else {
-				logger.error("修改分组名失败 errcode:{} errmsg:{}", errorCode,
-						errorMsg);
-			}
+		int errorCode = jsonObject.getInteger("errcode");
+		String errorMsg = jsonObject.getString("errmsg");
+		if (0 == errorCode) {
+			result = true;
+			logger.info("修改分组名成功 errcode:{} errmsg:{}", errorCode, errorMsg);
+		} else {
+			logger.error("修改分组名失败 errcode:{} errmsg:{}", errorCode, errorMsg);
 		}
 		return result;
 	}
@@ -259,7 +248,7 @@ public class UserManagerTool {
 	 * @return true | false
 	 */
 	public static boolean updateMemberGroup(String accessToken, String openId,
-			int groupId) {
+			int groupId) throws Exception {
 		boolean result = false;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/cgi-bin/groups/members/update?access_token=ACCESS_TOKEN";
@@ -270,17 +259,13 @@ public class UserManagerTool {
 		JSONObject jsonObject = CommonUtil.httpsRequest(requestUrl, "POST",
 				String.format(jsonData, openId, groupId));
 
-		if (null != jsonObject) {
-			int errorCode = jsonObject.getInteger("errcode");
-			String errorMsg = jsonObject.getString("errmsg");
-			if (0 == errorCode) {
-				result = true;
-				logger.info("移动用户分组成功 errcode:{} errmsg:{}", errorCode,
-						errorMsg);
-			} else {
-				logger.error("移动用户分组失败 errcode:{} errmsg:{}", errorCode,
-						errorMsg);
-			}
+		int errorCode = jsonObject.getInteger("errcode");
+		String errorMsg = jsonObject.getString("errmsg");
+		if (0 == errorCode) {
+			result = true;
+			logger.info("移动用户分组成功 errcode:{} errmsg:{}", errorCode, errorMsg);
+		} else {
+			logger.error("移动用户分组失败 errcode:{} errmsg:{}", errorCode, errorMsg);
 		}
 		return result;
 	}

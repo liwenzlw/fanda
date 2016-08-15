@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.yisi.weixin.bean.Token;
+import com.yisi.weixin.exception.WeixinException;
 
 /**
  * 与微信服务器交互通用工具类
@@ -28,20 +29,25 @@ import com.yisi.weixin.bean.Token;
  * @version 1.0
  */
 public class CommonUtil {
-	
+
 	private static Logger logger = LoggerFactory.getLogger(CommonUtil.class);
 
 	// 凭证获取（GET）
 	public final static String TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET";
+
 	/**
 	 * 发送https请求
 	 * 
-	 * @param requestUrl 请求地址
-	 * @param requestMethod 请求方式（GET、POST）
-	 * @param outputStr 提交的数据
+	 * @param requestUrl
+	 *            请求地址
+	 * @param requestMethod
+	 *            请求方式（GET、POST）
+	 * @param outputStr
+	 *            提交的数据
 	 * @return JSONObject(通过JSONObject.get(key)的方式获取json对象的属性值)
 	 */
-	public static JSONObject httpsRequest(String requestUrl, String requestMethod, String outputStr) {
+	public static JSONObject httpsRequest(String requestUrl,
+			String requestMethod, String outputStr) throws Exception{
 		JSONObject jsonObject = null;
 		try {
 			// 创建SSLContext对象，并使用我们指定的信任管理器初始化
@@ -54,7 +60,7 @@ public class CommonUtil {
 			URL url = new URL(requestUrl);
 			HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
 			conn.setSSLSocketFactory(ssf);
-			
+
 			conn.setDoOutput(true);
 			conn.setDoInput(true);
 			conn.setUseCaches(false);
@@ -70,8 +76,10 @@ public class CommonUtil {
 			}
 			// 从输入流读取微信服务器返回内容
 			InputStream inputStream = conn.getInputStream();
-			InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "utf-8");
-			BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+			InputStreamReader inputStreamReader = new InputStreamReader(
+					inputStream, "utf-8");
+			BufferedReader bufferedReader = new BufferedReader(
+					inputStreamReader);
 			String str = null;
 			StringBuffer buffer = new StringBuffer();
 			while ((str = bufferedReader.readLine()) != null) {
@@ -84,10 +92,16 @@ public class CommonUtil {
 			inputStream = null;
 			conn.disconnect();
 			jsonObject = JSON.parseObject(buffer.toString());
-		} catch (ConnectException ce) {
-			logger.error("连接超时：{}", ce);
+		} catch (ConnectException e) {
+			logger.error("连接超时：{}", e);
+			throw new WeixinException("连接超时:" + e.getMessage());
 		} catch (Exception e) {
 			logger.error("https请求异常：{}", e);
+			throw new WeixinException("https请求异常:" + e.getMessage());
+		}
+		if (null == jsonObject) {
+			logger.error("微信服务器返回数据为空");
+			throw new WeixinException("微信服务器返回数据为空");
 		}
 		return jsonObject;
 	}
@@ -95,28 +109,34 @@ public class CommonUtil {
 	/**
 	 * 获取接口访问凭证
 	 * 
-	 * @param appid 凭证
-	 * @param appsecret 密钥
+	 * @param appid
+	 *            凭证
+	 * @param appsecret
+	 *            密钥
 	 * @return
 	 */
-	public static Token getToken(String appid, String appsecret) {
+	public static Token getToken(String appid, String appsecret)
+			throws WeixinException,Exception {
 		Token token = null;
-		String requestUrl = TOKEN_URL.replace("APPID", appid).replace("APPSECRET", appsecret);
+		String requestUrl = TOKEN_URL.replace("APPID", appid).replace(
+				"APPSECRET", appsecret);
 		// 发起GET请求获取凭证
 		JSONObject jsonObject = httpsRequest(requestUrl, "GET", null);
 
-		if (null != jsonObject) {
-				token = new Token();
-				token.setAccessToken(jsonObject.getString("access_token"));
-				token.setExpiresIn(jsonObject.getIntValue("expires_in"));
-				if(StringUtils.isEmpty(token.getAccessToken())){
-					token = null;
-					// 获取token失败
-					logger.error("获取token失败 errcode:{} errmsg:{}", jsonObject.getIntValue("errcode"), jsonObject.getString("errmsg"));
-				}
+		token = new Token();
+		token.setAccessToken(jsonObject.getString("access_token"));
+		token.setExpiresIn(jsonObject.getIntValue("expires_in"));
+		if (StringUtils.isEmpty(token.getAccessToken())) {
+			token = null;
+			// 获取token失败
+			logger.error("获取token失败 errcode:{} errmsg:{}",
+					jsonObject.getIntValue("errcode"),
+					jsonObject.getString("errmsg"));
+			throw new WeixinException("获取token失败 errcode:" + jsonObject.getIntValue("errcode")+" errmsg:" + jsonObject.getString("errmsg"));
 		}
 		return token;
 	}
+
 	/**
 	 * URL编码（utf-8）
 	 * 
@@ -132,11 +152,12 @@ public class CommonUtil {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * 根据内容类型判断文件扩展名
 	 * 
-	 * @param contentType 内容类型
+	 * @param contentType
+	 *            内容类型
 	 * @return
 	 */
 	public static String getFileExt(String contentType) {
