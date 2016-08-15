@@ -9,7 +9,7 @@ import java.util.List;
  * @author liwen
  * @version 1.0
  */
-public class WeixinUserList {
+public class UserList {
 	// 公众账号的总关注用户数
 	private int total;
 	// 获取的OpenID个数

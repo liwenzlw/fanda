@@ -6,7 +6,7 @@ package com.yisi.weixin.bean;
  * @author liwen
  * @version 1.0
  */
-public class WeixinUserInfo {
+public class UserInfo {
 	// 关注状态（1是关注，0是未关注），未关注时获取不到其余信息
 	private int subscribe;
 	// 用户的标识

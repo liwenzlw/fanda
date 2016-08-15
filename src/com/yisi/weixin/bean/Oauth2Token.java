@@ -7,7 +7,7 @@ package com.yisi.weixin.bean;
  * @author liwen
  * @version 1.0
  */
-public class WeixinOauth2Token {
+public class Oauth2Token {
 	// 网页授权接口调用凭证
 	private String accessToken;
 	// 凭证有效时长

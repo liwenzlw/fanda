@@ -7,7 +7,7 @@ package com.yisi.weixin.bean;
  * @author liwen
  * @version 1.0
  */
-public class WeixinQRCode {
+public class SceneQRCode {
 	// 获取的二维码ticket
 	private String ticket;
 	// 二维码的有效时间，单位为秒，最大不超过1800.

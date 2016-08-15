@@ -7,7 +7,7 @@ package com.yisi.weixin.bean;
  * @author liwen
  * @version 1.0
  */
-public class WeixinMedia {
+public class Media {
 	
 	// 媒体文件类型
 	private String type;
