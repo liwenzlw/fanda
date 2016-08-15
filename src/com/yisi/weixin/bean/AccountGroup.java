@@ -7,7 +7,7 @@ package com.yisi.weixin.bean;
  * @author liwen
  * @version 1.0
  */
-public class WeixinGroup {
+public class AccountGroup {
 	// 分组id
 	private int id;
 	// 分组名称
