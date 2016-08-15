@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yisi.back.dao.TopicDao">
+
+	<resultMap type="Topic" id="topicResultMap">
+		<!-- column:库表的字段名 property:实体类里的属性名 -->
+		<id column="topic_id" property="topicId" />
+		<result column="topic_title" property="topicTitle" />
+		<result column="topic_detail" property="topicDetail" />
+		<result column="topic_res" property="topicRes" />
+		<result column="start_time" property="startTime" />
+		<result column="update_time" property="updateTime" />
+	</resultMap>
+
+	<delete id="deleteTopicById" parameterType="java.lang.Integer">
+		delete from t_topic
+		where topic_id = #{topicId,jdbcType=INTEGER}
+	</delete>
+
+	<select id="queryTopicById" parameterType="int" resultMap="topicResultMap">
+		select * from t_topic
+		where topic_id = #{topicId,jdbcType=INTEGER}
+	</select>
+
+	<insert id="insertTopic" parameterType="Topic" useGeneratedKeys="true"
+		keyProperty="topic_id">
+		insert into
+		t_topic(topic_title,topic_detail,topic_res,start_time,update_time)
+		values
+		(#{topicTitle},#{topicDetail},#{topicRes},#{startTime},#{updateTime});
+	</insert>
+
+	<update id="updateTopic" parameterType="Topic">
+		update t_topic
+		<set>
+			<if test="topicTitle != null">topic_title=#{topicTitle},</if>
+			<if test="topicDetail != null">topic_detail=#{topicDetail},</if>
+			<if test="topicRes != null">topic_res=#{topicRes},</if>
+			<if test="startTime != null">start_time=#{startTime}</if>
+			<if test="updateTime != null">update_time=#{updateTime}</if>
+		</set>
+		where topic_id=#{topicId}
+	</update>
+</mapper>
