@@ -37,7 +37,7 @@ public class MenuTool {
 	 * @return true成功 false失败
 	 */
 	public static boolean createMenu(Menu menu, String accessToken)
-			throws WeixinException,Exception {
+			{
 		boolean result = false;
 		String url = MENU_CREATE_URL.replace("ACCESS_TOKEN", accessToken);
 		// 将菜单对象转换成json字符串

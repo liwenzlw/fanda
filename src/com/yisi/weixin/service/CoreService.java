@@ -16,12 +16,12 @@ import com.yisi.weixin.util.MessageTool;
  */
 public class CoreService {
 	/**
-	 * 处理微信发来的请求
+	 * 处理微信发来的消息，并返回响应xml
 	 * 
 	 * @param request
-	 * @return xml
+	 * @return 响应微信发送过来的信息（返回xml格式）
 	 */
-	public static String processRequest(HttpServletRequest request) throws Exception{
+	public static String processRequest(HttpServletRequest request) {
 		// xml格式的消息数据
 		String respXml = null;
 		// 默认返回的文本消息内容

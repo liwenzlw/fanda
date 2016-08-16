@@ -36,7 +36,7 @@
 
 	<mvc:annotation-driven />
 
-    <mvc:resources mapping="/js/**" location="/js/" />
+    
 
 	<!-- <mvc:interceptors>
 		配置自定义的拦截器

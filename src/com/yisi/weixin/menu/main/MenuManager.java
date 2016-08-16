@@ -23,16 +23,18 @@ public class MenuManager {
 	
 	private static Logger logger = Logger.getLogger(MenuManager.class);
 
+	//bae服务器端地址
+	private static String basePath = "ethink4fanda.duapp.com";
 	/**
 	 * 定义菜单结构
 	 * 
 	 * @return
 	 */
 	private static Menu getMenu() {
-		ClickButton btnOschina = new ClickButton();
-		btnOschina.setName("开源中国");
-		btnOschina.setType("click");
-		btnOschina.setKey("oschina");
+		ViewButton btnOauth = new ViewButton();
+		btnOauth.setName("授权界面");
+		btnOauth.setType("view");
+		btnOauth.setUrl("http://ethink4fanda.duapp.com/weixin/test/oauth.jsp");
 
 		ClickButton btnITeye = new ClickButton();
 		btnITeye.setName("ITeye");
@@ -81,7 +83,7 @@ public class MenuManager {
 
 		ComplexButton mainBtn1 = new ComplexButton();
 		mainBtn1.setName("技术交流");
-		mainBtn1.setSub_button(new Button[] { btnOschina, btnITeye, vBtnIteye });
+		mainBtn1.setSub_button(new Button[] { btnOauth, btnITeye, vBtnIteye });
 
 		ComplexButton mainBtn2 = new ComplexButton();
 		mainBtn2.setName("购物");

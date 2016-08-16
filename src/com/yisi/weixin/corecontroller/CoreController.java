@@ -37,7 +37,7 @@ public class CoreController {
 	 */
 	@RequestMapping(value = "/coreCheck", method = RequestMethod.GET)
 	public void coreCheck(HttpServletRequest request,
-			HttpServletResponse response) throws Exception {
+			HttpServletResponse response){
 		// 微信加密签名
 		String signature = request.getParameter("signature");
 		// 时间戳
@@ -75,7 +75,7 @@ public class CoreController {
 	 */
 	@RequestMapping(value = "/coreCheck", method = RequestMethod.POST)
 	public void feedback(HttpServletRequest request, HttpServletResponse response)
-			throws Exception {
+			{
 		PrintWriter out = null;
 		try {
 			// 将请求、响应的编码均设置为UTF-8（防止中文乱码）

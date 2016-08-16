@@ -83,7 +83,7 @@ public class MessageTool {
 	 * @return Map<String, String>
 	 * @throws Exception
 	 */
-	public static Map<String, String> parseXml(HttpServletRequest request) throws Exception{
+	public static Map<String, String> parseXml(HttpServletRequest request) {
 		// 将解析结果存储在HashMap中
 		Map<String, String> map = new HashMap<String, String>();
 		InputStream inputStream = null;
@@ -104,11 +104,9 @@ public class MessageTool {
 				map.put(e.getName(), e.getText());
 			}
 		} catch (IOException e) {
-			logger.error("从HttpServletRequest后去输入流异常");
-			new RuntimeException("从HttpServletRequest后去输入流异常");
+			logger.error("从HttpServletRequest中获取输入流异常");
 		} catch (DocumentException e) {
 			logger.error("Dom4j解析微信推送的xml异常");
-			new RuntimeException("Dom4j解析微信推送的xml异常");
 		} finally {
 			// 释放资源
 				try {

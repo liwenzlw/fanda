@@ -36,18 +36,17 @@ public class UserManagerTool {
 	 *            用户标识
 	 * @return WeixinUserInfo
 	 */
-	public static UserInfo getUserInfo(String accessToken, String openId)
-			throws Exception {
+	public static UserInfo getUserInfo(String accessToken, String openId) {
 		UserInfo weixinUserInfo = null;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=ACCESS_TOKEN&openid=OPENID";
 		requestUrl = requestUrl.replace("ACCESS_TOKEN", accessToken).replace(
 				"OPENID", openId);
 		// 获取用户信息
-		JSONObject jsonObject = CommonUtil
-				.httpsRequest(requestUrl, "GET", null);
+		JSONObject jsonObject = null;
 
 		try {
+			CommonUtil.httpsRequest(requestUrl, "GET", null);
 			weixinUserInfo = new UserInfo();
 			// 用户的标识
 			weixinUserInfo.setOpenId(jsonObject.getString("openid"));
@@ -100,8 +99,7 @@ public class UserManagerTool {
 	 * @return WeixinUserList
 	 */
 	@SuppressWarnings({ "unchecked", "deprecation" })
-	public static UserList getUserList(String accessToken, String nextOpenId)
-			throws Exception {
+	public static UserList getUserList(String accessToken, String nextOpenId) {
 		UserList weixinUserList = null;
 
 		if (null == nextOpenId)
@@ -112,11 +110,11 @@ public class UserManagerTool {
 		requestUrl = requestUrl.replace("ACCESS_TOKEN", accessToken).replace(
 				"NEXT_OPENID", nextOpenId);
 		logger.debug(requestUrl);
-		// 获取关注者列表
-		JSONObject jsonObject = CommonUtil
-				.httpsRequest(requestUrl, "GET", null);
+		JSONObject jsonObject = null;
 		// 如果请求成功
 		try {
+			// 获取关注者列表
+			jsonObject = CommonUtil.httpsRequest(requestUrl, "GET", null);
 			weixinUserList = new UserList();
 			weixinUserList.setTotal(jsonObject.getInteger("total"));
 			weixinUserList.setCount(jsonObject.getInteger("count"));
@@ -124,7 +122,7 @@ public class UserManagerTool {
 			JSONObject dataObject = (JSONObject) jsonObject.get("data");
 			weixinUserList.setOpenIdList(JSONArray.toJavaObject(
 					dataObject.getJSONArray("openid"), List.class));
-		} catch (JSONException e) {
+		} catch (Exception e) {
 			weixinUserList = null;
 			int errorCode = jsonObject.getInteger("errcode");
 			String errorMsg = jsonObject.getString("errmsg");
@@ -140,21 +138,19 @@ public class UserManagerTool {
 	 * @param accessToken
 	 *            调用接口凭证
 	 */
-	@SuppressWarnings({ "unchecked", "deprecation" })
-	public static List<UserGroup> getGroups(String accessToken)
-			throws Exception {
+	public static List<UserGroup> getGroups(String accessToken) {
 		List<UserGroup> weixinGroupList = null;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/cgi-bin/groups/get?access_token=ACCESS_TOKEN";
 		requestUrl = requestUrl.replace("ACCESS_TOKEN", accessToken);
 		// 查询分组
-		JSONObject jsonObject = CommonUtil
-				.httpsRequest(requestUrl, "GET", null);
+		JSONObject jsonObject = null;
 
 		try {
+			jsonObject = CommonUtil.httpsRequest(requestUrl, "GET", null);
 			weixinGroupList = JSON.parseArray(jsonObject.getString("groups"),
 					UserGroup.class);
-		} catch (JSONException e) {
+		} catch (Exception e) {
 			weixinGroupList = null;
 			int errorCode = jsonObject.getInteger("errcode");
 			String errorMsg = jsonObject.getString("errmsg");
@@ -173,8 +169,7 @@ public class UserManagerTool {
 	 *            分组名称
 	 * @return
 	 */
-	public static UserGroup createGroup(String accessToken, String groupName)
-			throws Exception {
+	public static UserGroup createGroup(String accessToken, String groupName) {
 		UserGroup weixinGroup = null;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/cgi-bin/groups/create?access_token=ACCESS_TOKEN";
@@ -182,16 +177,17 @@ public class UserManagerTool {
 		// 需要提交的json数据
 		String jsonData = "{\"group\" : {\"name\" : \"%s\"}}";
 		// 创建分组
-		JSONObject jsonObject = CommonUtil.httpsRequest(requestUrl, "POST",
-				String.format(jsonData, groupName));
+		JSONObject jsonObject = null;
 
 		try {
+			jsonObject = CommonUtil.httpsRequest(requestUrl, "POST",
+					String.format(jsonData, groupName));
 			weixinGroup = new UserGroup();
 			weixinGroup.setId(jsonObject.getJSONObject("group")
 					.getInteger("id"));
 			weixinGroup.setName(jsonObject.getJSONObject("group").getString(
 					"name"));
-		} catch (JSONException e) {
+		} catch (Exception e) {
 			weixinGroup = null;
 			int errorCode = jsonObject.getInteger("errcode");
 			String errorMsg = jsonObject.getString("errmsg");
@@ -213,7 +209,7 @@ public class UserManagerTool {
 	 * @return true | false
 	 */
 	public static boolean updateGroup(String accessToken, int groupId,
-			String groupName) throws Exception {
+			String groupName) {
 		boolean result = false;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/cgi-bin/groups/update?access_token=ACCESS_TOKEN";
@@ -221,8 +217,14 @@ public class UserManagerTool {
 		// 需要提交的json数据
 		String jsonData = "{\"group\": {\"id\": %d, \"name\": \"%s\"}}";
 		// 修改分组名
-		JSONObject jsonObject = CommonUtil.httpsRequest(requestUrl, "POST",
-				String.format(jsonData, groupId, groupName));
+		JSONObject jsonObject = null;
+		try {
+			CommonUtil.httpsRequest(requestUrl, "POST",
+					String.format(jsonData, groupId, groupName));
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return false;
+		}
 
 		int errorCode = jsonObject.getInteger("errcode");
 		String errorMsg = jsonObject.getString("errmsg");
@@ -248,7 +250,7 @@ public class UserManagerTool {
 	 * @return true | false
 	 */
 	public static boolean updateMemberGroup(String accessToken, String openId,
-			int groupId) throws Exception {
+			int groupId) {
 		boolean result = false;
 		// 拼接请求地址
 		String requestUrl = "https://api.weixin.qq.com/cgi-bin/groups/members/update?access_token=ACCESS_TOKEN";
@@ -256,8 +258,15 @@ public class UserManagerTool {
 		// 需要提交的json数据
 		String jsonData = "{\"openid\":\"%s\",\"to_groupid\":%d}";
 		// 移动用户分组
-		JSONObject jsonObject = CommonUtil.httpsRequest(requestUrl, "POST",
-				String.format(jsonData, openId, groupId));
+		JSONObject jsonObject = null;
+
+		try {
+			CommonUtil.httpsRequest(requestUrl, "POST",
+					String.format(jsonData, openId, groupId));
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return false;
+		}
 
 		int errorCode = jsonObject.getInteger("errcode");
 		String errorMsg = jsonObject.getString("errmsg");
